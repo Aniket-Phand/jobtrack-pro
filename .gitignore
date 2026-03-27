@@ -1,29 +1,44 @@
-# Java
-target/
+# --- Specific to your project structure ---
+**/bin/
+**/target/
+jobtrack-backend/jobtrack/.mvn/wrapper/maven-wrapper.properties
+jobtrack-backend/jobtrack/mvnw
+jobtrack-backend/jobtrack/mvnw.cmd
+
+# --- Java & Maven ---
 *.class
 *.log
+*.jar
+*.war
+*.ear
+*.tar.gz
+target/
+bin/
 
-# Eclipse
-.metadata
-.project
-.classpath
-.settings/
+# --- Spring Boot & Database ---
+# IMPORTANT: This keeps your password file out of Git!
+application.properties
+**/src/main/resources/application.properties
+.env
+*.sh
 
-# IntelliJ
+# --- Frontend (If using React/Angular) ---
+**/node_modules/
+**/dist/
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# --- IDEs (IntelliJ, Eclipse, VS Code) ---
 .idea/
 *.iml
-
-# VS Code
+.classpath
+.project
+.settings/
 .vscode/
+.factorypath
 
-# OS
+# --- System Files ---
 .DS_Store
-
-# ENV
-.env
-
-# Logs
-logs/
-
-# Build
-build/
+Thumbs.db
