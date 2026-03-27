@@ -12,7 +12,10 @@ public class Job {
 
     private String company;
     private String role;
-    private String status; // APPLIED, INTERVIEW, OFFER, REJECTED
+    
+    //private String status;
+    @Enumerated(EnumType.STRING)
+    private JobStatus status; // APPLIED, INTERVIEW, OFFER, REJECTED
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -44,13 +47,11 @@ public class Job {
 		this.role = role;
 	}
 
-	public String getStatus() {
-		return status;
-	}
-
-	public void setStatus(String status) {
-		this.status = status;
-	}
+	/*
+	 * public String getStatus() { return status; }
+	 * 
+	 * public void setStatus(String status) { this.status = status; }
+	 */
 
 	public User getUser() {
 		return user;
@@ -58,6 +59,14 @@ public class Job {
 
 	public void setUser(User user) {
 		this.user = user;
+	}
+
+	public JobStatus getStatus() {
+		return status;
+	}
+
+	public void setStatus(JobStatus status) {
+		this.status = status;
 	}
     
 }
