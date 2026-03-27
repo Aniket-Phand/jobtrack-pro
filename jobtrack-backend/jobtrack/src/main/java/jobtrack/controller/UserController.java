@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
+import jobtrack.dto.UserDTO;
 import jobtrack.entity.User;
 import jobtrack.service.UserService;
 
@@ -25,9 +27,14 @@ public class UserController {
 	
 	//CREATE 
 	@PostMapping
-	public User createUser(@RequestBody User user) {
-		return userService.createUser(user);
+	public User createUser(@Valid @RequestBody UserDTO userDTO) {
+	    User user = new User();
+	    user.setName(userDTO.getName());
+	    user.setEmail(userDTO.getEmail());
+
+	    return userService.createUser(user);
 	}
+	
 	
 	//READ
 	@GetMapping
