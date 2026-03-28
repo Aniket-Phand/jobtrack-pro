@@ -2,6 +2,9 @@ package jobtrack.service;
 
 import jobtrack.entity.Job;
 import jobtrack.repository.JobRepository;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,9 +22,13 @@ public class JobService {
         return jobRepository.save(job);
     }
 
-    public List<Job> getJobsByUser(Long userId) {
-        return jobRepository.findByUserId(userId);
-    }
+	 public List<Job> getJobsByUser(Long userId) { 
+		 return jobRepository.findByUserId(userId); 
+	}
+
+	 public Page<Job> getJobsByUser(Long userId, Pageable pageable) {
+		    return jobRepository.findByUserId(userId, pageable);
+	}
 
     public void deleteJob(Long id) {
         jobRepository.deleteById(id);

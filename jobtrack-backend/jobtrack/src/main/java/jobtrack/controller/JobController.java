@@ -5,9 +5,10 @@ import jobtrack.entity.Job;
 import jobtrack.entity.User;
 import jobtrack.service.JobService;
 import jobtrack.repository.UserRepository;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
@@ -58,6 +59,14 @@ public class JobController {
         job.setStatus(jobDTO.getStatus());
 
         return jobService.updateJob(jobId, job);
+    }
+    
+    @GetMapping
+    public Page<Job> getJobs(
+            @RequestParam Long userId,
+            Pageable pageable) {
+
+        return jobService.getJobsByUser(userId, pageable);
     }
  
 }
