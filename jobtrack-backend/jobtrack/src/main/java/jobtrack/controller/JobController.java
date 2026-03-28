@@ -2,6 +2,7 @@ package jobtrack.controller;
 
 import jobtrack.dto.JobDTO;
 import jobtrack.entity.Job;
+import jobtrack.entity.JobStatus;
 import jobtrack.entity.User;
 import jobtrack.service.JobService;
 import jobtrack.repository.UserRepository;
@@ -67,6 +68,16 @@ public class JobController {
             Pageable pageable) {
 
         return jobService.getJobsByUser(userId, pageable);
+    }
+    
+    @GetMapping("/search")
+    public Page<Job> searchJobs(
+            @RequestParam Long userId,
+            @RequestParam JobStatus status,
+            @RequestParam String company,
+            Pageable pageable) {
+
+        return jobService.searchJobs(userId, status, company, pageable);
     }
  
 }

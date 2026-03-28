@@ -1,6 +1,7 @@
 package jobtrack.service;
 
 import jobtrack.entity.Job;
+import jobtrack.entity.JobStatus;
 import jobtrack.repository.JobRepository;
 
 import org.springframework.data.domain.Page;
@@ -34,7 +35,6 @@ public class JobService {
         jobRepository.deleteById(id);
     }
     
-    
     public Job updateJob(Long id, Job updatedJob) {
 
         Job job = jobRepository.findById(id)
@@ -45,5 +45,16 @@ public class JobService {
         job.setStatus(updatedJob.getStatus());
 
         return jobRepository.save(job);
+    }
+    
+    public Page<Job> searchJobs(Long userId, JobStatus status, String company, Pageable pageable) {
+
+        return jobRepository
+                .findByUserIdAndStatusAndCompanyContainingIgnoreCase(
+                        userId,
+                        status,
+                        company,
+                        pageable
+                );
     }
 }
