@@ -1,5 +1,6 @@
 package jobtrack.controller;
 
+import jobtrack.dto.DashboardDTO;
 import jobtrack.dto.JobDTO;
 import jobtrack.entity.Job;
 import jobtrack.entity.JobStatus;
@@ -78,6 +79,11 @@ public class JobController {
             Pageable pageable) {
 
         return jobService.searchJobs(userId, status, company, pageable);
+    }
+    
+    @GetMapping("/dashboard")
+    public DashboardDTO getDashboard(@RequestParam Long userId) {
+        return jobService.getDashboard(userId);
     }
  
 }

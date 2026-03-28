@@ -23,4 +23,9 @@ public interface JobRepository extends JpaRepository<Job, Long> {
             String company,
             Pageable pageable
     );
+    
+    //For Dashboard
+    long countByUserId(Long userId);
+
+    long countByUserIdAndStatus(Long userId, JobStatus status);
 }

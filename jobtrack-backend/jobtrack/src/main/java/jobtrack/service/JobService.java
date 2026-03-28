@@ -1,5 +1,6 @@
 package jobtrack.service;
 
+import jobtrack.dto.DashboardDTO;
 import jobtrack.entity.Job;
 import jobtrack.entity.JobStatus;
 import jobtrack.repository.JobRepository;
@@ -7,7 +8,7 @@ import jobtrack.repository.JobRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
+import jobtrack.dto.DashboardDTO;
 import java.util.List;
 
 @Service
@@ -56,5 +57,17 @@ public class JobService {
                         company,
                         pageable
                 );
+    }
+    
+  
+    public DashboardDTO getDashboard(Long userId) {
+
+        long total = jobRepository.countByUserId(userId);
+        long applied = jobRepository.countByUserIdAndStatus(userId, JobStatus.APPLIED);
+        long interview = jobRepository.countByUserIdAndStatus(userId, JobStatus.INTERVIEW);
+        long offer = jobRepository.countByUserIdAndStatus(userId, JobStatus.OFFER);
+        long rejected = jobRepository.countByUserIdAndStatus(userId, JobStatus.REJECTED);
+
+        return new DashboardDTO(total, applied, interview, offer, rejected);
     }
 }
