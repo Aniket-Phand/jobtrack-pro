@@ -7,10 +7,13 @@ import jobtrack.entity.JobStatus;
 import jobtrack.entity.User;
 import jobtrack.service.JobService;
 import jobtrack.repository.UserRepository;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
@@ -25,10 +28,13 @@ public class JobController {
         this.userRepository = userRepository;
     }
 
-    @PostMapping("/{userId}")
-    public Job createJob(@PathVariable Long userId, @RequestBody JobDTO jobDTO) {
+    // 🔥 CREATE JOB (NO userId)
+    @PostMapping
+    public Job createJob(@RequestBody JobDTO jobDTO) {
 
-        User user = userRepository.findById(userId)
+        String email = getLoggedInUserEmail();
+
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         Job job = new Job();
@@ -39,19 +45,23 @@ public class JobController {
 
         return jobService.createJob(job);
     }
-    
 
-    @GetMapping("/{userId}")
-    public List<Job> getJobs(@PathVariable Long userId) {
-        return jobService.getJobsByUser(userId);
+    // 🔥 GET ALL JOBS (NO userId)
+    @GetMapping
+    public Page<Job> getJobs(Pageable pageable) {
+
+        String email = getLoggedInUserEmail();
+        return jobService.getJobsByEmail(email, pageable);
     }
 
+    // 🔥 DELETE
     @DeleteMapping("/{jobId}")
     public String deleteJob(@PathVariable Long jobId) {
         jobService.deleteJob(jobId);
         return "Job deleted successfully";
     }
-    
+
+    // 🔥 UPDATE
     @PutMapping("/{jobId}")
     public Job updateJob(@PathVariable Long jobId, @RequestBody JobDTO jobDTO) {
 
@@ -62,28 +72,29 @@ public class JobController {
 
         return jobService.updateJob(jobId, job);
     }
-    
-    @GetMapping
-    public Page<Job> getJobs(
-            @RequestParam Long userId,
-            Pageable pageable) {
 
-        return jobService.getJobsByUser(userId, pageable);
-    }
-    
+    // 🔥 SEARCH
     @GetMapping("/search")
     public Page<Job> searchJobs(
-            @RequestParam Long userId,
             @RequestParam JobStatus status,
             @RequestParam String company,
             Pageable pageable) {
 
-        return jobService.searchJobs(userId, status, company, pageable);
+        String email = getLoggedInUserEmail();
+        return jobService.searchJobsByEmail(email, status, company, pageable);
     }
-    
+
+    // 🔥 DASHBOARD
     @GetMapping("/dashboard")
-    public DashboardDTO getDashboard(@RequestParam Long userId) {
-        return jobService.getDashboard(userId);
+    public DashboardDTO getDashboard() {
+
+        String email = getLoggedInUserEmail();
+        return jobService.getDashboardByEmail(email);
     }
- 
+
+    // 🔐 COMMON METHOD
+    private String getLoggedInUserEmail() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth.getName();
+    }
 }
