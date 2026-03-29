@@ -4,13 +4,10 @@ import viteLogo from './assets/vite.svg'
 import heroImg from './assets/hero.png'
 import './App.css'
 
+import AppRoutes from "./routes/AppRoutes";
+
 function App() {
-  return(
-    <div>
-      <h1>JobTrack Pro 🚀</h1>
-      <p>Testing Frontend Setup</p>
-    </div>
-  );
+  return <AppRoutes />;
 }
 
 export default App
