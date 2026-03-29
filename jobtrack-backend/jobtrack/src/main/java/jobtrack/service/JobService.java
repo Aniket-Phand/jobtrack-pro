@@ -6,7 +6,6 @@ import jobtrack.entity.JobStatus;
 import jobtrack.entity.User;
 import jobtrack.repository.JobRepository;
 import jobtrack.repository.UserRepository;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -26,7 +25,7 @@ public class JobService {
         return jobRepository.save(job);
     }
 
-    // 🔥 GET JOBS BY EMAIL
+    //GET JOBS BY EMAIL
     public Page<Job> getJobsByEmail(String email, Pageable pageable) {
 
         User user = getUserByEmail(email);
@@ -49,7 +48,7 @@ public class JobService {
         return jobRepository.save(job);
     }
 
-    // 🔥 SEARCH
+    //SEARCH
     public Page<Job> searchJobsByEmail(String email, JobStatus status, String company, Pageable pageable) {
 
         User user = getUserByEmail(email);
@@ -63,7 +62,7 @@ public class JobService {
                 );
     }
 
-    // 🔥 DASHBOARD
+    //DASHBOARD
     public DashboardDTO getDashboardByEmail(String email) {
 
         User user = getUserByEmail(email);
@@ -78,7 +77,7 @@ public class JobService {
         return new DashboardDTO(total, applied, interview, offer, rejected);
     }
 
-    // 🔐 COMMON METHOD
+    //COMMON METHOD
     private User getUserByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));

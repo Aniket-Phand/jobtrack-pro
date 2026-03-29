@@ -1,6 +1,7 @@
 package jobtrack.controller;
 
 import jobtrack.entity.User;
+import jobtrack.entity.Role;
 import jobtrack.repository.UserRepository;
 import jobtrack.security.JwtUtil;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +20,13 @@ public class AuthController {
 
     @PostMapping("/register")
     public User register(@RequestBody User user) {
+
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+            throw new RuntimeException("Email already exists");
+        }
+
+        user.setRole(Role.USER);
+
         return userRepository.save(user);
     }
 
@@ -32,6 +40,10 @@ public class AuthController {
             throw new RuntimeException("Invalid credentials");
         }
 
-        return jwtUtil.generateToken(user.getEmail());
+        //PASS ROLE INTO TOKEN
+        return jwtUtil.generateToken(
+                existingUser.getEmail(),
+                existingUser.getRole().name()
+        );
     }
 }

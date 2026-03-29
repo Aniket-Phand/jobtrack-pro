@@ -7,9 +7,9 @@ import jobtrack.entity.JobStatus;
 import jobtrack.entity.User;
 import jobtrack.service.JobService;
 import jobtrack.repository.UserRepository;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize; //ADD
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -28,8 +28,9 @@ public class JobController {
         this.userRepository = userRepository;
     }
 
-    // 🔥 CREATE JOB (NO userId)
+    //CREATE JOB (USER + ADMIN)
     @PostMapping
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public Job createJob(@RequestBody JobDTO jobDTO) {
 
         String email = getLoggedInUserEmail();
@@ -46,23 +47,26 @@ public class JobController {
         return jobService.createJob(job);
     }
 
-    // 🔥 GET ALL JOBS (NO userId)
+    //GET JOBS (USER + ADMIN)
     @GetMapping
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public Page<Job> getJobs(Pageable pageable) {
 
         String email = getLoggedInUserEmail();
         return jobService.getJobsByEmail(email, pageable);
     }
 
-    // 🔥 DELETE
+    //DELETE (ADMIN ONLY 🚨)
     @DeleteMapping("/{jobId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public String deleteJob(@PathVariable Long jobId) {
         jobService.deleteJob(jobId);
         return "Job deleted successfully";
     }
 
-    // 🔥 UPDATE
+    //UPDATE (USER + ADMIN)
     @PutMapping("/{jobId}")
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public Job updateJob(@PathVariable Long jobId, @RequestBody JobDTO jobDTO) {
 
         Job job = new Job();
@@ -73,8 +77,9 @@ public class JobController {
         return jobService.updateJob(jobId, job);
     }
 
-    // 🔥 SEARCH
+    //SEARCH (USER + ADMIN)
     @GetMapping("/search")
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public Page<Job> searchJobs(
             @RequestParam JobStatus status,
             @RequestParam String company,
@@ -84,15 +89,16 @@ public class JobController {
         return jobService.searchJobsByEmail(email, status, company, pageable);
     }
 
-    // 🔥 DASHBOARD
+    //DASHBOARD (USER + ADMIN)
     @GetMapping("/dashboard")
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public DashboardDTO getDashboard() {
 
         String email = getLoggedInUserEmail();
         return jobService.getDashboardByEmail(email);
     }
 
-    // 🔐 COMMON METHOD
+    //COMMON METHOD
     private String getLoggedInUserEmail() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return auth.getName();
