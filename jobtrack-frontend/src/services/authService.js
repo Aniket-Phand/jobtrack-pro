@@ -1,8 +1,6 @@
-import axios from "axios";
-
-const API = "http://localhost:8080/auth";
+import api from "./api"; // ✅ use custom instance
 
 export const loginUser = async (data) => {
-  const response = await axios.post(`${API}/login`, data);
+  const response = await api.post("/auth/login", data);
   return response.data;
 };
