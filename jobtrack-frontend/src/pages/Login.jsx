@@ -6,7 +6,7 @@ function Login() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
 
-  const navigate = useNavigate(); // ✅ added
+  const navigate = useNavigate(); //added
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -20,7 +20,7 @@ function Login() {
 
       alert("Login Successful ✅");
 
-      navigate("/dashboard"); // ✅ redirect
+      navigate("/dashboard"); //redirect
 
     } catch (error) {
       console.error(error);

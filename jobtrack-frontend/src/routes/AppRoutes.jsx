@@ -8,8 +8,6 @@ function AppRoutes() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
-
-        {/* 🔐 ONLY THIS ONE */}
         <Route
           path="/dashboard"
           element={

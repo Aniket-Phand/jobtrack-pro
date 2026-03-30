@@ -4,7 +4,7 @@ const api = axios.create({
   baseURL: "http://localhost:8080",
 });
 
-// 🔥 REQUEST INTERCEPTOR
+//REQUEST INTERCEPTOR
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -18,7 +18,7 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// 🔥 RESPONSE INTERCEPTOR (NEW)
+//RESPONSE INTERCEPTOR
 api.interceptors.response.use(
   (response) => response,
   (error) => {
