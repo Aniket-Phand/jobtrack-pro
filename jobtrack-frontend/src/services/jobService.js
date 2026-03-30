@@ -11,3 +11,14 @@ export const createJob = async (jobData) => {
   const response = await api.post("/jobs", jobData);
   return response.data;
 };
+
+//DELETE JOB
+export const deleteJob = async (jobId) => {
+  await api.delete(`/jobs/${jobId}`);
+};
+
+//UPDATE JOB
+export const updateJob = async (jobId, jobData) => {
+  const response = await api.put(`/jobs/${jobId}`, jobData);
+  return response.data;
+};
