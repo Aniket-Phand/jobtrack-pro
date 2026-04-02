@@ -27,6 +27,7 @@ function Login() {
     <div style={containerStyle}>
       
       <div style={cardStyle}>
+        <h1 className="text-red-500 text-3xl">Tailwind Working!!!</h1>
         <h2 style={{ marginBottom: "20px" }}>Welcome Back 👋</h2>
         <p style={{ marginBottom: "30px", color: "#6b7280" }}>
           Login to your JobTrack Pro account
