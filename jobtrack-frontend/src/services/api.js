@@ -1,10 +1,11 @@
 import axios from "axios";
 
+// Axios instance configuration
 const api = axios.create({
   baseURL: "http://localhost:8080",
 });
 
-//REQUEST INTERCEPTOR
+// Attach JWT token to every request
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -18,7 +19,7 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-//RESPONSE INTERCEPTOR
+// Handle unauthorized responses globally
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -30,7 +31,7 @@ api.interceptors.response.use(
   }
 );
 
-//DECODE TOKEN (simple)
+// Decode JWT token to extract user info
 export const getUserFromToken = () => {
   const token = localStorage.getItem("token");
   if (!token) return null;
