@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   getJobs,
   createJob,
@@ -9,55 +9,46 @@ import { getUserFromToken } from "../services/api";
 import { useNavigate } from "react-router-dom";
 
 function Dashboard() {
+  const [view, setView] = useState("HOME");
   const [jobs, setJobs] = useState([]);
-  const [view, setView] = useState("HOME"); // HOME | JOBS | CREATE
   const [loading, setLoading] = useState(false);
-  const [editJobId, setEditJobId] = useState(null);
 
   const [company, setCompany] = useState("");
   const [role, setRole] = useState("");
   const [status, setStatus] = useState("APPLIED");
+  const [editId, setEditId] = useState(null);
 
   const user = getUserFromToken();
   const navigate = useNavigate();
 
-  //FETCH JOBS ONLY WHEN CLICKED
-  const handleFetchJobs = async () => {
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
+  };
+
+  const fetchJobs = async () => {
     setView("JOBS");
     setLoading(true);
 
-    try {
-      const response = await getJobs();
-
-      if (Array.isArray(response)) setJobs(response);
-      else if (Array.isArray(response.content)) setJobs(response.content);
-      else setJobs([]);
-    } catch (err) {
-      console.error(err);
-      setJobs([]);
-    } finally {
-      setLoading(false);
-    }
+    const data = await getJobs();
+    setJobs(Array.isArray(data) ? data : data.content || []);
+    setLoading(false);
   };
 
-  //CREATE / UPDATE
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    try {
-      if (editJobId) {
-        await updateJob(editJobId, { company, role, status });
-        alert("Updated ✅");
-      } else {
-        await createJob({ company, role, status });
-        alert("Created ✅");
-      }
-
-      resetForm();
-      setView("HOME");
-    } catch {
-      alert("Error ❌");
+    if (editId) {
+      await updateJob(editId, { company, role, status });
+    } else {
+      await createJob({ company, role, status });
     }
+
+    setCompany("");
+    setRole("");
+    setStatus("APPLIED");
+    setEditId(null);
+    setView("HOME");
   };
 
   const handleDelete = async (id) => {
@@ -66,172 +57,166 @@ function Dashboard() {
   };
 
   const handleEdit = (job) => {
-    setEditJobId(job.id);
+    setEditId(job.id);
     setCompany(job.company);
     setRole(job.role);
     setStatus(job.status);
     setView("CREATE");
   };
 
-  const resetForm = () => {
-    setCompany("");
-    setRole("");
-    setStatus("APPLIED");
-    setEditJobId(null);
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/login");
-  };
-
   return (
-    <div style={{ fontFamily: "Arial", minHeight: "100vh", background: "#eef2f7" }}>
+    <div className="flex h-screen bg-gray-100">
       
-      {/*NAVBAR */}
-      <div style={{
-        display: "flex",
-        justifyContent: "space-between",
-        padding: "15px 30px",
-        background: "#1e293b",
-        color: "white"
-      }}>
-        <h2>JobTrack Pro 🚀</h2>
+      {/* SIDEBAR */}
+      <div className="w-60 bg-gray-900 text-white flex flex-col p-4">
+        <h2 className="text-xl font-bold mb-6">JobTrack 🚀</h2>
 
-        <div>
-          <span style={{ marginRight: "15px" }}>
-            {user?.email} ({user?.role})
-          </span>
+        <button
+          onClick={() => setView("HOME")}
+          className="mb-2 p-2 rounded hover:bg-gray-700 text-left"
+        >
+          🏠 Dashboard
+        </button>
 
-          <button onClick={handleLogout} style={{
-            background: "#ef4444",
-            color: "white",
-            border: "none",
-            padding: "6px 12px",
-            borderRadius: "6px"
-          }}>
-            Logout
-          </button>
-        </div>
+        <button
+          onClick={fetchJobs}
+          className="mb-2 p-2 rounded hover:bg-gray-700 text-left"
+        >
+          📄 View Jobs
+        </button>
+
+        <button
+          onClick={() => setView("CREATE")}
+          className="p-2 rounded hover:bg-gray-700 text-left"
+        >
+          ➕ Create Job
+        </button>
       </div>
 
-      <div style={{ padding: "40px", maxWidth: "900px", margin: "auto" }}>
+      {/*MAIN AREA */}
+      <div className="flex-1 flex flex-col">
 
-        {/*HOME VIEW */}
-        {view === "HOME" && (
-          <div style={{ textAlign: "center" }}>
-            <h1>Welcome 👋</h1>
-            <p>Manage your job applications efficiently</p>
+        {/*NAVBAR */}
+        <div className="flex justify-between items-center bg-white p-4 shadow">
+          <h1 className="font-semibold">Dashboard</h1>
 
-            <div style={{ marginTop: "30px" }}>
-              <button
-                onClick={handleFetchJobs}
-                style={btnStyle("#3b82f6")}
-              >
-                📄 View Jobs
-              </button>
+          <div>
+            <span className="mr-4 text-sm text-gray-600">
+              {user?.email} ({user?.role})
+            </span>
 
-              <button
-                onClick={() => setView("CREATE")}
-                style={btnStyle("#10b981")}
-              >
-                ➕ Create Job
-              </button>
+            <button
+              onClick={handleLogout}
+              className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+
+        {/* CONTENT */}
+        <div className="p-6 overflow-auto">
+
+          {/* HOME */}
+          {view === "HOME" && (
+            <div>
+              <h2 className="text-2xl font-bold mb-4">Welcome 👋</h2>
+              <p className="text-gray-600">
+                Manage your job applications easily.
+              </p>
             </div>
-          </div>
-        )}
+          )}
 
-        {/*JOB LIST VIEW */}
-        {view === "JOBS" && (
-          <div>
-            <button onClick={() => setView("HOME")}>⬅ Back</button>
+          {/* JOB LIST */}
+          {view === "JOBS" && (
+            <div>
+              <h2 className="text-xl font-bold mb-4">Your Jobs</h2>
 
-            <h2>Your Jobs</h2>
+              {loading ? (
+                <p>Loading...</p>
+              ) : jobs.length === 0 ? (
+                <p>No jobs found</p>
+              ) : (
+                <div className="grid gap-4">
+                  {jobs.map((job) => (
+                    <div
+                      key={job.id}
+                      className="bg-white p-4 rounded-xl shadow"
+                    >
+                      <h3 className="font-semibold text-lg">
+                        {job.role || "Job Role"}
+                      </h3>
+                      <p className="text-gray-600">{job.company}</p>
 
-            {loading ? (
-              <p>Loading...</p>
-            ) : jobs.length === 0 ? (
-              <p>No jobs found</p>
-            ) : (
-              jobs.map((job) => (
-                <div key={job.id} style={cardStyle}>
-                  <h3>{job.role}</h3>
-                  <p>{job.company}</p>
-                  <p>Status: {job.status}</p>
+                      <span className="text-sm px-2 py-1 rounded bg-blue-100 text-blue-600">
+                        {job.status}
+                      </span>
 
-                  <button onClick={() => handleEdit(job)}>Edit</button>
-                  <button onClick={() => handleDelete(job.id)}>Delete</button>
+                      <div className="mt-3 space-x-2">
+                        <button
+                          onClick={() => handleEdit(job)}
+                          className="px-3 py-1 bg-yellow-400 rounded"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(job.id)}
+                          className="px-3 py-1 bg-red-500 text-white rounded"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))
-            )}
-          </div>
-        )}
+              )}
+            </div>
+          )}
 
-        {/*CREATE / EDIT VIEW */}
-        {view === "CREATE" && (
-          <div>
-            <button onClick={() => setView("HOME")}>⬅ Back</button>
+          {/* CREATE / EDIT */}
+          {view === "CREATE" && (
+            <div className="max-w-md">
+              <h2 className="text-xl font-bold mb-4">
+                {editId ? "Edit Job" : "Create Job"}
+              </h2>
 
-            <h2>{editJobId ? "Edit Job" : "Create Job"}</h2>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <input
+                  className="w-full p-2 border rounded"
+                  placeholder="Company"
+                  value={company}
+                  onChange={(e) => setCompany(e.target.value)}
+                />
 
-            <form onSubmit={handleSubmit} style={formStyle}>
-              <input
-                placeholder="Company"
-                value={company}
-                onChange={(e) => setCompany(e.target.value)}
-                required
-              />
+                <input
+                  className="w-full p-2 border rounded"
+                  placeholder="Role"
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                />
 
-              <input
-                placeholder="Role"
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                required
-              />
+                <select
+                  className="w-full p-2 border rounded"
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                >
+                  <option>APPLIED</option>
+                  <option>INTERVIEW</option>
+                  <option>OFFER</option>
+                  <option>REJECTED</option>
+                </select>
 
-              <select value={status} onChange={(e) => setStatus(e.target.value)}>
-                <option>APPLIED</option>
-                <option>INTERVIEW</option>
-                <option>OFFER</option>
-                <option>REJECTED</option>
-              </select>
+                <button className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
+                  {editId ? "Update Job" : "Create Job"}
+                </button>
+              </form>
+            </div>
+          )}
 
-              <button type="submit">
-                {editJobId ? "Update" : "Create"}
-              </button>
-            </form>
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );
 }
-
-//STYLES
-const btnStyle = (color) => ({
-  margin: "10px",
-  padding: "12px 20px",
-  background: color,
-  color: "white",
-  border: "none",
-  borderRadius: "8px",
-  cursor: "pointer",
-  fontSize: "16px"
-});
-
-const cardStyle = {
-  background: "white",
-  padding: "15px",
-  marginTop: "10px",
-  borderRadius: "10px",
-  boxShadow: "0 2px 5px rgba(0,0,0,0.1)"
-};
-
-const formStyle = {
-  display: "flex",
-  flexDirection: "column",
-  gap: "10px",
-  maxWidth: "400px"
-};
 
 export default Dashboard;
