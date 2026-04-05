@@ -7,32 +7,27 @@ import {
 } from "../services/jobService";
 import { getUserFromToken } from "../services/api";
 import { useNavigate } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
 
 function Dashboard() {
-  // View state
   const [view, setView] = useState("HOME");
 
-  // Job state
   const [jobs, setJobs] = useState([]);
   const [filteredJobs, setFilteredJobs] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Form state
   const [company, setCompany] = useState("");
   const [role, setRole] = useState("");
   const [status, setStatus] = useState("APPLIED");
   const [editId, setEditId] = useState(null);
 
-  // Search & filter
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("ALL");
 
-  // Dark mode
   const [darkMode, setDarkMode] = useState(
     localStorage.getItem("theme") === "dark"
   );
 
-  // Delete modal
   const [deleteId, setDeleteId] = useState(null);
 
   const user = getUserFromToken();
@@ -54,34 +49,46 @@ function Dashboard() {
   // Logout
   const handleLogout = () => {
     localStorage.removeItem("token");
+    toast.info("Logged out successfully");
     navigate("/login");
   };
 
   // Fetch jobs
   const fetchJobs = async () => {
-    setView("JOBS");
-    setLoading(true);
+    try {
+      setView("JOBS");
+      setLoading(true);
 
-    const data = await getJobs();
-    const jobList = Array.isArray(data) ? data : data.content || [];
+      const data = await getJobs();
+      const jobList = Array.isArray(data) ? data : data.content || [];
 
-    setJobs(jobList);
-    setFilteredJobs(jobList);
-    setLoading(false);
+      setJobs(jobList);
+      setFilteredJobs(jobList);
+    } catch (error) {
+      toast.error("Failed to fetch jobs");
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (editId) {
-      await updateJob(editId, { company, role, status });
-    } else {
-      await createJob({ company, role, status });
-    }
+    try {
+      if (editId) {
+        await updateJob(editId, { company, role, status });
+        toast.success("Job updated successfully");
+      } else {
+        await createJob({ company, role, status });
+        toast.success("Job created successfully");
+      }
 
-    resetForm();
-    fetchJobs();
+      resetForm();
+      fetchJobs();
+    } catch (error) {
+      toast.error("Operation failed");
+    }
   };
 
   // Reset form
@@ -95,10 +102,16 @@ function Dashboard() {
 
   // Delete job
   const handleDelete = async (id) => {
-    await deleteJob(id);
-    const updated = jobs.filter((j) => j.id !== id);
-    setJobs(updated);
-    setFilteredJobs(updated);
+    try {
+      await deleteJob(id);
+      const updated = jobs.filter((j) => j.id !== id);
+      setJobs(updated);
+      setFilteredJobs(updated);
+
+      toast.success("Job deleted successfully");
+    } catch {
+      toast.error("Delete failed");
+    }
   };
 
   // Edit job
@@ -129,7 +142,6 @@ function Dashboard() {
     setFilteredJobs(updated);
   }, [searchTerm, filterStatus, jobs]);
 
-  // Status color helper
   const getStatusColor = (status) => {
     switch (status) {
       case "APPLIED":
@@ -147,6 +159,10 @@ function Dashboard() {
 
   return (
     <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
+      
+      {/* Toast container */}
+      <ToastContainer position="top-right" autoClose={2000} />
+
       {/* Sidebar */}
       <div className="w-60 bg-gray-900 text-white flex flex-col p-4">
         <h2 className="text-xl font-bold mb-6">JobTrack</h2>
@@ -166,7 +182,6 @@ function Dashboard() {
 
       {/* Main */}
       <div className="flex-1 flex flex-col">
-        {/* Navbar */}
         <div className="flex justify-between items-center bg-white dark:bg-gray-800 p-4 shadow">
           <h1 className="font-semibold text-gray-800 dark:text-white">Dashboard</h1>
 
@@ -191,8 +206,8 @@ function Dashboard() {
           </div>
         </div>
 
-        {/* Content */}
         <div className="p-6 overflow-auto text-gray-800 dark:text-white">
+
           {view === "HOME" && (
             <div>
               <h2 className="text-2xl font-bold mb-4">Welcome</h2>
@@ -206,7 +221,6 @@ function Dashboard() {
             <div>
               <h2 className="text-xl font-bold mb-4">Your Jobs</h2>
 
-              {/* Search + Filter */}
               <div className="flex gap-4 mb-4">
                 <input
                   className="p-2 border rounded w-full dark:bg-gray-800"
@@ -313,7 +327,7 @@ function Dashboard() {
         </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Modal */}
       {deleteId && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-80">
