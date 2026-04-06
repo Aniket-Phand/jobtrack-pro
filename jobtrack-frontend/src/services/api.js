@@ -1,5 +1,13 @@
 import axios from "axios";
 
+//COMMON TOKEN GETTER (IMPORTANT)
+const getToken = () => {
+  return (
+    localStorage.getItem("token") ||
+    sessionStorage.getItem("token")
+  );
+};
+
 // Axios instance configuration
 const api = axios.create({
   baseURL: "http://localhost:8080",
@@ -8,7 +16,7 @@ const api = axios.create({
 // Attach JWT token to every request
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
+    const token = getToken(); //UPDATED
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -24,7 +32,10 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
+      //CLEAR BOTH
       localStorage.removeItem("token");
+      sessionStorage.removeItem("token");
+
       window.location.href = "/login";
     }
     return Promise.reject(error);
@@ -33,7 +44,7 @@ api.interceptors.response.use(
 
 // Decode JWT token to extract user info
 export const getUserFromToken = () => {
-  const token = localStorage.getItem("token");
+  const token = getToken(); //UPDATED
   if (!token) return null;
 
   try {

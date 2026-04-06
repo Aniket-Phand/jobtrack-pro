@@ -47,11 +47,13 @@ function Dashboard() {
   }, [darkMode]);
 
   // Logout
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    toast.info("Logged out successfully");
-    navigate("/login");
-  };
+const handleLogout = () => {
+  localStorage.removeItem("token");
+  sessionStorage.removeItem("token"); //IMPORTANT
+
+  toast.info("Logged out successfully");
+  navigate("/login");
+};
 
   // Fetch jobs
   const fetchJobs = async () => {
