@@ -8,6 +8,6 @@ public class JobtrackApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(JobtrackApplication.class, args);
-		System.out.println("Welcome to JOB-TRACK-PRO!!!");
+		System.out.println("Welcome to JOB-TRACK-PRO!!!");  
 	}
 }
