@@ -196,8 +196,18 @@ const handleLogout = () => {
             </button>
 
             <span className="mr-4 text-sm text-gray-600 dark:text-gray-300">
-              {user?.email} ({user?.role})
-            </span>
+  {user?.email} ({user?.role})
+</span>
+
+{user?.role === "ADMIN" && (
+  <button
+    onClick={() => navigate("/admin")}
+    className="mr-4 px-3 py-1 bg-indigo-500 text-white rounded"
+  >
+    Admin Panel
+  </button>
+)}
+
 
             <button
               onClick={handleLogout}
