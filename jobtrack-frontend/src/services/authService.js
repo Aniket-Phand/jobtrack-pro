@@ -1,6 +1,11 @@
-import api from "./api"; //use custom instance
+import api from "./api";
 
 export const loginUser = async (data) => {
-  const response = await api.post("/auth/login", data);
-  return response.data;
+  const res = await api.post("/auth/login", data);
+  return res.data;
+};
+
+export const registerUser = async (data) => {
+  const res = await api.post("/auth/register", data);
+  return res.data;
 };
