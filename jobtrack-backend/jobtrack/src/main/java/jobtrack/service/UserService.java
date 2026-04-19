@@ -34,7 +34,10 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // ✅ No manual job delete needed
+        // Step 1: delete all jobs
+        jobRepository.deleteJobsByUserId(id);
+
+        // Step 2: delete user
         userRepository.delete(user);
     }
     

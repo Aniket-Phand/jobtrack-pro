@@ -32,8 +32,12 @@ public interface JobRepository extends JpaRepository<Job, Long> {
     long countByUserId(Long userId);
     long countByUserIdAndStatus(Long userId, JobStatus status);
 
-    // ✅ FIXED DELETE QUERY
+    // FIXED DELETE QUERY
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("DELETE FROM Job j WHERE j.user.id = :userId")
     void deleteJobsByUserId(@Param("userId") Long userId);
+    
+    // Admin Dashboard
+    long count();
+    long countByStatus(JobStatus status);
 }

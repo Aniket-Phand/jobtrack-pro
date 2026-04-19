@@ -4,6 +4,7 @@ import Signup from "../pages/Signup";
 import Dashboard from "../pages/Dashboard";
 import AdminPage from "../pages/AdminPage";
 import ProtectedRoute from "./ProtectedRoute";
+import AdminDashboard from "../pages/AdminDashboard";
 
 function AppRoutes() {
   return (
@@ -28,6 +29,15 @@ function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={["ADMIN"]}>
               <AdminPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/dashboard"
+          element={
+            <ProtectedRoute role="ADMIN">
+              <AdminDashboard />
             </ProtectedRoute>
           }
         />

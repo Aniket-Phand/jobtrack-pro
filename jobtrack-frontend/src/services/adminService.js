@@ -8,12 +8,12 @@ export const getAllUsers = async () => {
 
 // DELETE USER
 export const deleteUser = async (id) => {
-  const res = await api.delete(`/admin/users/${id}`);
-  return res.data;
+  await api.delete(`/admin/users/${id}`);
 };
 
 // UPDATE ROLE
 export const updateUserRole = async (id, role) => {
-  const res = await api.put(`/admin/users/${id}/role?role=${role}`);
-  return res.data;
+  await api.put(`/admin/users/${id}/role`, null, {
+    params: { role },
+  });
 };
