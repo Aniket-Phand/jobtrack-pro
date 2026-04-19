@@ -32,14 +32,43 @@ public class JobService {
         return jobRepository.findByUserId(user.getId(), pageable);
     }
 
-    public void deleteJob(Long id) {
-        jobRepository.deleteById(id);
+    public void deleteJob(Long jobId, String email) {
+
+        Job job = jobRepository.findById(jobId)
+                .orElseThrow(() -> new RuntimeException("Job not found"));
+
+        User loggedInUser = getUserByEmail(email);
+
+        //ADMIN - can delete any job
+        if (loggedInUser.getRole().name().equals("ADMIN")) {
+            jobRepository.delete(job);
+            return;
+        }	
+
+        //USER - can delete only their own job
+        if (!job.getUser().getId().equals(loggedInUser.getId())) {
+            throw new RuntimeException("You are not allowed to delete this job");
+        }
+
+        jobRepository.delete(job);
     }
 
-    public Job updateJob(Long id, Job updatedJob) {
+    //Update Job
+    public Job updateJob(Long id, Job updatedJob, String email) {
 
         Job job = jobRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Job not found"));
+
+        User loggedInUser = getUserByEmail(email);
+
+        //ADMIN → allow
+        if (!loggedInUser.getRole().name().equals("ADMIN")) {
+
+            //USER → only own job
+            if (!job.getUser().getId().equals(loggedInUser.getId())) {
+                throw new RuntimeException("You are not allowed to update this job");
+            }
+        }
 
         job.setCompany(updatedJob.getCompany());
         job.setRole(updatedJob.getRole());

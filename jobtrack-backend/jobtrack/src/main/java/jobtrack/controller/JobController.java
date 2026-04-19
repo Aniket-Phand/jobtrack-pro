@@ -56,11 +56,13 @@ public class JobController {
         return jobService.getJobsByEmail(email, pageable);
     }
 
-    //DELETE (ADMIN ONLY 🚨)
+    //DELETE (USER + ADMIN)
     @DeleteMapping("/{jobId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public String deleteJob(@PathVariable Long jobId) {
-        jobService.deleteJob(jobId);
+
+        String email = getLoggedInUserEmail();
+        jobService.deleteJob(jobId, email);
         return "Job deleted successfully";
     }
 
@@ -69,12 +71,14 @@ public class JobController {
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public Job updateJob(@PathVariable Long jobId, @RequestBody JobDTO jobDTO) {
 
+        String email = getLoggedInUserEmail();
+
         Job job = new Job();
         job.setCompany(jobDTO.getCompany());
         job.setRole(jobDTO.getRole());
         job.setStatus(jobDTO.getStatus());
 
-        return jobService.updateJob(jobId, job);
+        return jobService.updateJob(jobId, job, email);
     }
 
     //SEARCH (USER + ADMIN)
