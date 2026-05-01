@@ -32,7 +32,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-            .cors(cors -> {})
+            .cors(cors -> {}) // CORS enabled
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -41,7 +41,10 @@ public class SecurityConfig {
                 .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
             )
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/**").permitAll()
+                // ✅ PUBLIC ENDPOINTS (IMPORTANT FIX)
+                .requestMatchers("/", "/auth/**").permitAll()
+
+                // 🔒 ALL OTHER ENDPOINTS REQUIRE AUTH
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

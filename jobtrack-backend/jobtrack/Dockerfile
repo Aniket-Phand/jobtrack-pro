@@ -1,20 +1,20 @@
-# Use Java 17
-FROM eclipse-temurin:17-jdk
+# Use lightweight Java 17 image
+FROM eclipse-temurin:17-jdk-jammy
 
 # Set working directory
 WORKDIR /app
 
-# Copy all files
+# Copy project files
 COPY . .
 
-# Give permission to mvnw
+# Give permission to Maven wrapper
 RUN chmod +x mvnw
 
-# Build project
-RUN ./mvnw clean install -DskipTests
+# Build the application
+RUN ./mvnw clean package -DskipTests
 
-# Expose port
+# Expose port (Render will override this)
 EXPOSE 8080
 
-# Run app
-CMD ["java", "-jar", "target/jobtrack-0.0.1-SNAPSHOT.jar"]
+# Run application (IMPORTANT: dynamic PORT support)
+CMD ["sh", "-c", "java -jar target/*.jar --server.port=${PORT}"]
