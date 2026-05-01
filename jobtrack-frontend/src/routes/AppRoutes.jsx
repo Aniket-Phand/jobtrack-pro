@@ -5,30 +5,36 @@ import Dashboard from "../pages/Dashboard";
 import AdminPage from "../pages/AdminPage";
 import ProtectedRoute from "./ProtectedRoute";
 import AdminDashboard from "../pages/AdminDashboard";
+import Layout from "../components/Layout";
 
 function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
+
+        {/* PUBLIC */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
 
-        {/* USER + ADMIN */}
+        {/* PROTECTED WITH LAYOUT */}
         <Route
           path="/dashboard"
           element={
             <ProtectedRoute allowedRoles={["USER", "ADMIN"]}>
-              <Dashboard />
+              <Layout>
+                <Dashboard />
+              </Layout>
             </ProtectedRoute>
           }
         />
 
-        {/* ADMIN ONLY */}
         <Route
           path="/admin"
           element={
             <ProtectedRoute allowedRoles={["ADMIN"]}>
-              <AdminPage />
+              <Layout>
+                <AdminPage />
+              </Layout>
             </ProtectedRoute>
           }
         />
@@ -36,11 +42,14 @@ function AppRoutes() {
         <Route
           path="/admin/dashboard"
           element={
-            <ProtectedRoute role="ADMIN">
-              <AdminDashboard />
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <Layout>
+                <AdminDashboard />
+              </Layout>
             </ProtectedRoute>
           }
         />
+
       </Routes>
     </BrowserRouter>
   );

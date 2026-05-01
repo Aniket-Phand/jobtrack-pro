@@ -5,16 +5,17 @@ import {
   deleteJob,
   updateJob,
 } from "../services/jobService";
-import { getUserFromToken } from "../services/api";
-import { useNavigate } from "react-router-dom";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
+import { useConfirm } from "../context/ConfirmContext";
 
 function Dashboard() {
-  const [view, setView] = useState("HOME");
+  const { openConfirm } = useConfirm();
 
+  const [view, setView] = useState("HOME");
   const [jobs, setJobs] = useState([]);
   const [filteredJobs, setFilteredJobs] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [btnLoading, setBtnLoading] = useState(false);
 
   const [company, setCompany] = useState("");
   const [role, setRole] = useState("");
@@ -24,38 +25,7 @@ function Dashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("ALL");
 
-  const [darkMode, setDarkMode] = useState(
-    localStorage.getItem("theme") === "dark"
-  );
-
-  const [deleteId, setDeleteId] = useState(null);
-
-  const user = getUserFromToken();
-  const navigate = useNavigate();
-
-  // Apply dark mode
-  useEffect(() => {
-    const root = document.documentElement;
-
-    if (darkMode) {
-      root.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    } else {
-      root.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-    }
-  }, [darkMode]);
-
-  // Logout
-const handleLogout = () => {
-  localStorage.removeItem("token");
-  sessionStorage.removeItem("token"); //IMPORTANT
-
-  toast.info("Logged out successfully");
-  navigate("/login");
-};
-
-  // Fetch jobs
+  // ================= FETCH JOBS =================
   const fetchJobs = async () => {
     try {
       setView("JOBS");
@@ -66,34 +36,46 @@ const handleLogout = () => {
 
       setJobs(jobList);
       setFilteredJobs(jobList);
-    } catch (error) {
+    } catch {
       toast.error("Failed to fetch jobs");
     } finally {
       setLoading(false);
     }
   };
 
-  // Submit form
-  const handleSubmit = async (e) => {
+  // ================= CREATE / UPDATE =================
+  const handleSubmit = (e) => {
     e.preventDefault();
 
-    try {
-      if (editId) {
-        await updateJob(editId, { company, role, status });
-        toast.success("Job updated successfully");
-      } else {
-        await createJob({ company, role, status });
-        toast.success("Job created successfully");
-      }
+    openConfirm(
+      editId ? "Update Job" : "Create Job",
+      editId
+        ? "Are you sure you want to update this job?"
+        : "Are you sure you want to create this job?",
+      async () => {
+        try {
+          setBtnLoading(true);
 
-      resetForm();
-      fetchJobs();
-    } catch (error) {
-      toast.error("Operation failed");
-    }
+          if (editId) {
+            await updateJob(editId, { company, role, status });
+            toast.success("Job updated 🎉");
+          } else {
+            await createJob({ company, role, status });
+            toast.success("Job created 🚀");
+          }
+
+          resetForm();
+          fetchJobs();
+        } catch {
+          toast.error("Operation failed");
+        } finally {
+          setBtnLoading(false);
+        }
+      }
+    );
   };
 
-  // Reset form
+  // ================= RESET =================
   const resetForm = () => {
     setCompany("");
     setRole("");
@@ -102,21 +84,29 @@ const handleLogout = () => {
     setView("HOME");
   };
 
-  // Delete job
-  const handleDelete = async (id) => {
-    try {
-      await deleteJob(id);
-      const updated = jobs.filter((j) => j.id !== id);
-      setJobs(updated);
-      setFilteredJobs(updated);
+  // ================= DELETE =================
+  const handleDelete = (id) => {
+    openConfirm(
+      "Delete Job",
+      "Are you sure you want to delete this job?",
+      async () => {
+        try {
+          await deleteJob(id);
 
-      toast.success("Job deleted successfully");
-    } catch {
-      toast.error("Delete failed");
-    }
+          setJobs((prev) => prev.filter((j) => j.id !== id));
+          setFilteredJobs((prev) =>
+            prev.filter((j) => j.id !== id)
+          );
+
+          toast.success("Deleted 🗑️");
+        } catch {
+          toast.error("Delete failed");
+        }
+      }
+    );
   };
 
-  // Edit job
+  // ================= EDIT =================
   const handleEdit = (job) => {
     setEditId(job.id);
     setCompany(job.company);
@@ -125,7 +115,7 @@ const handleLogout = () => {
     setView("CREATE");
   };
 
-  // Filter logic
+  // ================= FILTER =================
   useEffect(() => {
     let updated = [...jobs];
 
@@ -144,230 +134,164 @@ const handleLogout = () => {
     setFilteredJobs(updated);
   }, [searchTerm, filterStatus, jobs]);
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "APPLIED":
-        return "bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300";
-      case "INTERVIEW":
-        return "bg-yellow-100 text-yellow-600 dark:bg-yellow-900 dark:text-yellow-300";
-      case "OFFER":
-        return "bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-300";
-      case "REJECTED":
-        return "bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-300";
-      default:
-        return "bg-gray-100 text-gray-600";
-    }
-  };
-
   return (
-    <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
-      
-      {/* Toast container */}
-      <ToastContainer position="top-right" autoClose={2000} />
+    <div>
 
-      {/* Sidebar */}
-      <div className="w-60 bg-gray-900 text-white flex flex-col p-4">
-        <h2 className="text-xl font-bold mb-6">JobTrack</h2>
+      {/* HEADER */}
+      <h1 className="text-2xl font-bold mb-6">
+        Dashboard
+      </h1>
 
-        <button onClick={() => setView("HOME")} className="mb-2 p-2 hover:bg-gray-700 text-left">
-          Dashboard
-        </button>
-
-        <button onClick={fetchJobs} className="mb-2 p-2 hover:bg-gray-700 text-left">
-          View Jobs
-        </button>
-
-        <button onClick={() => setView("CREATE")} className="p-2 hover:bg-gray-700 text-left">
-          Create Job
-        </button>
+      {/* TABS */}
+      <div className="flex gap-3 mb-6">
+        {["HOME", "JOBS", "CREATE"].map((tab) => (
+          <button
+            key={tab}
+            onClick={() =>
+              tab === "JOBS" ? fetchJobs() : setView(tab)
+            }
+            className={`px-4 py-2 rounded transition ${
+              view === tab
+                ? "bg-gradient-to-r from-indigo-500 to-purple-600 text-white"
+                : "bg-gray-200 dark:bg-gray-700 dark:text-white"
+            }`}
+          >
+            {tab === "HOME"
+              ? "Home"
+              : tab === "JOBS"
+              ? "View Jobs"
+              : "Create Job"}
+          </button>
+        ))}
       </div>
 
-      {/* Main */}
-      <div className="flex-1 flex flex-col">
-        <div className="flex justify-between items-center bg-white dark:bg-gray-800 p-4 shadow">
-          <h1 className="font-semibold text-gray-800 dark:text-white">Dashboard</h1>
+      {/* HOME */}
+      {view === "HOME" && (
+        <p className="text-gray-600 dark:text-gray-300">
+          Manage your job applications efficiently 🚀
+        </p>
+      )}
 
-          <div className="flex items-center">
-            <button
-              onClick={() => setDarkMode(!darkMode)}
-              className="mr-4 px-3 py-1 border rounded dark:text-white"
+      {/* CREATE */}
+      {view === "CREATE" && (
+        <div className="max-w-md bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+
+            <input
+              className="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-500 
+              bg-white text-gray-800 
+              dark:bg-gray-800 dark:text-white dark:border-gray-600"
+              placeholder="Company"
+              value={company}
+              onChange={(e) => setCompany(e.target.value)}
+              required
+            />
+
+            <input
+              className="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-500 
+              bg-white text-gray-800 
+              dark:bg-gray-800 dark:text-white dark:border-gray-600"
+              placeholder="Role"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              required
+            />
+
+            <select
+              className="w-full p-2 border rounded 
+              bg-white text-gray-800 
+              dark:bg-gray-800 dark:text-white dark:border-gray-600"
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
             >
-              {darkMode ? "Light" : "Dark"}
+              <option>APPLIED</option>
+              <option>INTERVIEW</option>
+              <option>OFFER</option>
+              <option>REJECTED</option>
+            </select>
+
+            <button
+              disabled={btnLoading}
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded"
+            >
+              {btnLoading
+                ? "Processing..."
+                : editId
+                ? "Update Job"
+                : "Create Job"}
             </button>
 
-            <span className="mr-4 text-sm text-gray-600 dark:text-gray-300">
-  {user?.email} ({user?.role})
-</span>
-
-{user?.role === "ADMIN" && (
-  <button
-    onClick={() => navigate("/admin")}
-    className="mr-4 px-3 py-1 bg-indigo-500 text-white rounded"
-  >
-    Admin Panel
-  </button>
-)}
-
-
-            <button
-              onClick={handleLogout}
-              className="bg-red-500 text-white px-3 py-1 rounded"
-            >
-              Logout
-            </button>
-          </div>
+          </form>
         </div>
+      )}
 
-        <div className="p-6 overflow-auto text-gray-800 dark:text-white">
+      {/* JOB LIST */}
+      {view === "JOBS" && (
+        <div>
 
-          {view === "HOME" && (
-            <div>
-              <h2 className="text-2xl font-bold mb-4">Welcome</h2>
-              <p className="text-gray-600 dark:text-gray-300">
-                Manage your job applications efficiently.
-              </p>
-            </div>
-          )}
+          {/* FILTER */}
+          <div className="flex gap-3 mb-4">
+            <input
+              placeholder="Search..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="p-2 border rounded 
+              bg-white text-gray-800 
+              dark:bg-gray-800 dark:text-white dark:border-gray-600"
+            />
 
-          {view === "JOBS" && (
-            <div>
-              <h2 className="text-xl font-bold mb-4">Your Jobs</h2>
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="p-2 border rounded 
+              bg-white text-gray-800 
+              dark:bg-gray-800 dark:text-white dark:border-gray-600"
+            >
+              <option value="ALL">All</option>
+              <option value="APPLIED">Applied</option>
+              <option value="INTERVIEW">Interview</option>
+              <option value="OFFER">Offer</option>
+              <option value="REJECTED">Rejected</option>
+            </select>
+          </div>
 
-              <div className="flex gap-4 mb-4">
-                <input
-                  className="p-2 border rounded w-full dark:bg-gray-800"
-                  placeholder="Search..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-
-                <select
-                  className="p-2 border rounded dark:bg-gray-800"
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
+          {/* LIST */}
+          {loading ? (
+            <p>Loading...</p>
+          ) : filteredJobs.length === 0 ? (
+            <p>No jobs found</p>
+          ) : (
+            <div className="grid gap-4">
+              {filteredJobs.map((job) => (
+                <div
+                  key={job.id}
+                  className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow hover:scale-[1.02] transition"
                 >
-                  <option value="ALL">All</option>
-                  <option value="APPLIED">Applied</option>
-                  <option value="INTERVIEW">Interview</option>
-                  <option value="OFFER">Offer</option>
-                  <option value="REJECTED">Rejected</option>
-                </select>
-              </div>
+                  <h3 className="font-bold">{job.role}</h3>
+                  <p>{job.company}</p>
+                  <p className="text-sm">{job.status}</p>
 
-              {loading ? (
-                <div className="flex justify-center items-center h-40">
-                  <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                </div>
-              ) : filteredJobs.length === 0 ? (
-                <p>No jobs found</p>
-              ) : (
-                <div className="grid gap-4">
-                  {filteredJobs.map((job) => (
-                    <div
-                      key={job.id}
-                      className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow hover:shadow-lg transition"
+                  <div className="mt-2 space-x-2">
+                    <button
+                      onClick={() => handleEdit(job)}
+                      className="bg-yellow-400 px-2 py-1 rounded hover:scale-105 transition"
                     >
-                      <h3 className="font-semibold text-lg">{job.role}</h3>
-                      <p className="text-gray-600 dark:text-gray-300">{job.company}</p>
+                      Edit
+                    </button>
 
-                      <span className={`text-sm px-2 py-1 rounded ${getStatusColor(job.status)}`}>
-                        {job.status}
-                      </span>
-
-                      <div className="mt-3 space-x-2">
-                        <button
-                          onClick={() => handleEdit(job)}
-                          className="px-3 py-1 bg-yellow-400 rounded"
-                        >
-                          Edit
-                        </button>
-
-                        <button
-                          onClick={() => setDeleteId(job.id)}
-                          className="px-3 py-1 bg-red-500 text-white rounded"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                    <button
+                      onClick={() => handleDelete(job.id)}
+                      className="bg-red-500 text-white px-2 py-1 rounded hover:scale-105 transition"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
-              )}
+              ))}
             </div>
           )}
 
-          {view === "CREATE" && (
-            <div className="max-w-md">
-              <h2 className="text-xl font-bold mb-4">
-                {editId ? "Edit Job" : "Create Job"}
-              </h2>
-
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <input
-                  className="w-full p-2 border rounded dark:bg-gray-800"
-                  placeholder="Company"
-                  value={company}
-                  onChange={(e) => setCompany(e.target.value)}
-                  required
-                />
-
-                <input
-                  className="w-full p-2 border rounded dark:bg-gray-800"
-                  placeholder="Role"
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                  required
-                />
-
-                <select
-                  className="w-full p-2 border rounded dark:bg-gray-800"
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value)}
-                >
-                  <option>APPLIED</option>
-                  <option>INTERVIEW</option>
-                  <option>OFFER</option>
-                  <option>REJECTED</option>
-                </select>
-
-                <button className="w-full bg-blue-500 text-white p-2 rounded">
-                  {editId ? "Update Job" : "Create Job"}
-                </button>
-              </form>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Delete Modal */}
-      {deleteId && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-80">
-            <h3 className="text-lg font-semibold mb-4">Confirm Delete</h3>
-
-            <p className="text-sm mb-4">
-              Are you sure you want to delete this job?
-            </p>
-
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setDeleteId(null)}
-                className="px-3 py-1 border rounded"
-              >
-                Cancel
-              </button>
-
-              <button
-                onClick={async () => {
-                  await handleDelete(deleteId);
-                  setDeleteId(null);
-                }}
-                className="px-3 py-1 bg-red-500 text-white rounded"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
         </div>
       )}
     </div>
