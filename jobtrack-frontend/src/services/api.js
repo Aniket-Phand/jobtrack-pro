@@ -10,8 +10,7 @@ const getToken = () => {
 };
 
 // 🌐 BASE URL FROM ENV
-const BASE_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:8080";
+const BASE_URL = "https://jobtrack-pro-fixn.onrender.com";
 
 // 🚀 AXIOS INSTANCE
 const api = axios.create({
