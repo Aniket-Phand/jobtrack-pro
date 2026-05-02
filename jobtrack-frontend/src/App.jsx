@@ -6,6 +6,8 @@ import './App.css'
 
 import AppRoutes from "./routes/AppRoutes";
 
+console.log("App Loaded");
+
 function App() {
   return <AppRoutes />;
 }
