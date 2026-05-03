@@ -1,10 +1,12 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
 import Login from "../pages/Login";
 import Signup from "../pages/Signup";
 import Dashboard from "../pages/Dashboard";
 import AdminPage from "../pages/AdminPage";
-import ProtectedRoute from "./ProtectedRoute";
 import AdminDashboard from "../pages/AdminDashboard";
+
+import ProtectedRoute from "./ProtectedRoute";
 import Layout from "../components/Layout";
 
 function AppRoutes() {
@@ -12,11 +14,14 @@ function AppRoutes() {
     <BrowserRouter>
       <Routes>
 
-        {/* PUBLIC */}
+        {/* ✅ DEFAULT ROUTE (VERY IMPORTANT FIX) */}
+        <Route path="/" element={<Navigate to="/login" />} />
+
+        {/* ✅ PUBLIC ROUTES */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
 
-        {/* PROTECTED WITH LAYOUT */}
+        {/* ✅ USER + ADMIN DASHBOARD */}
         <Route
           path="/dashboard"
           element={
@@ -28,6 +33,7 @@ function AppRoutes() {
           }
         />
 
+        {/* ✅ ADMIN ROUTES */}
         <Route
           path="/admin"
           element={
@@ -49,6 +55,9 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
+
+        {/* ✅ FALLBACK ROUTE (FOR UNKNOWN PATHS) */}
+        <Route path="*" element={<Navigate to="/login" />} />
 
       </Routes>
     </BrowserRouter>
